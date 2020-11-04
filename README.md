@@ -1,2 +1,2 @@
-# hrrule-go
-Library for make human readable recurrence rules from iCalendar RRULE (RFC5545)
+# hrrule-go 🧐👀⚛️📜
+Library for make **h**uman **r**eadable **r**ecurrence **rule**s from iCalendar RRULE (RFC5545) in Golang
