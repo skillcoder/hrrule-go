@@ -2,9 +2,14 @@ package hrrule
 
 import (
 	"sort"
+	"strings"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 const weekLen = 7
+const initialTextLen = 64
+const spaceByte = ' '
 
 type byweekday struct {
 	allWeeks  []Weekday
@@ -16,16 +21,14 @@ type byweekday struct {
 
 type text struct {
 	rule ROption
-	// TODO: i18n
+	loc  *i18n.Localizer
 	// TODO: dateFormatter
-	lang       string
 	bymonthday []int
 	byweekday  byweekday
-	text       []string
+	text       strings.Builder
 }
 
-func newText(rule ROption, lang string) text {
-
+func newText(rule ROption, localizer *i18n.Localizer) *text {
 	bymonthday := make([]int, 0, len(rule.Bymonthday))
 	if len(rule.Bymonthday) != 0 {
 		// 1, 2, 3, ... , -5, -4, -3, ...
@@ -76,15 +79,37 @@ func newText(rule ROption, lang string) text {
 		sort.Slice(weekdays.someWeeks, func(i, j int) bool { return weekdays.someWeeks[i].Day() < weekdays.someWeeks[j].Day() })
 	}
 
-	return text{
+	return &text{
 		rule:       rule,
-		lang:       lang,
+		loc:        localizer,
 		bymonthday: bymonthday,
 		byweekday:  weekdays,
 	}
 }
 
-func (t text) String() string {
-	// FIXME
-	return ""
+func (t *text) String() string {
+	t.text.Reset()
+	t.text.Grow(initialTextLen)
+
+	t.text.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+		ID: "every",
+		Other: "every",
+	}}))
+
+	switch t.rule.Freq {
+	case DAILY:
+
+	}
+
+	return t.text.String()
+}
+
+func (t *text) add(s string) {
+	t.text.WriteByte(spaceByte)
+	t.text.WriteString(s)
+}
+
+// TODO: change to i18n
+func (t text) getText(s string) string {
+	return s
 }
