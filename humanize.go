@@ -21,8 +21,9 @@ func New() (Humanizer, error) {
 
 func (imp *HRRule) Humanize(rule ROption, lang string) (string, error) {
 	localizer := i18n.NewLocalizer(imp.bundle, lang)
+	dateFormatter := NewDateFormatterSimple()
 
-	txt := newText(rule, localizer)
+	txt := newText(rule, localizer, dateFormatter)
 
 	return txt.String(), nil
 }

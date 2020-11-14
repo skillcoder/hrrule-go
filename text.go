@@ -2,7 +2,9 @@ package hrrule
 
 import (
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
@@ -10,6 +12,39 @@ import (
 const weekLen = 7
 const initialTextLen = 64
 const spaceByte = ' '
+const comaSpace = ", "
+
+var implementedFreq = map[Frequency]struct{}{
+	DAILY: {},
+}
+
+type ListMode int
+
+const (
+	IsINT ListMode = iota
+	IsNTH
+	IsMONTH
+)
+
+var (
+	langAnd = &i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+		ID:          "And",
+		Description: "Used for final delimiter in list",
+		Other:       "and",
+	}}
+
+	langOr = &i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+		ID:          "Or",
+		Description: "Used for final delimiter in list",
+		Other:       "or",
+	}}
+
+	langOnThe = &i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+		ID:          "OnThe",
+		Description: "Used before list bymonthday, byweekday, byyearday and someWeeks",
+		Other:       "on the",
+	}}
+)
 
 type byweekday struct {
 	allWeeks  []Weekday
@@ -20,15 +55,15 @@ type byweekday struct {
 }
 
 type text struct {
-	rule ROption
-	loc  *i18n.Localizer
-	// TODO: dateFormatter
-	bymonthday []int
-	byweekday  byweekday
-	text       strings.Builder
+	rule          ROption
+	loc           *i18n.Localizer
+	dateFormatter DateFormatter
+	bymonthday    []int
+	byweekday     *byweekday
+	text          strings.Builder
 }
 
-func newText(rule ROption, localizer *i18n.Localizer) *text {
+func newText(rule ROption, localizer *i18n.Localizer, dateFormatter DateFormatter) *text {
 	bymonthday := make([]int, 0, len(rule.Bymonthday))
 	if len(rule.Bymonthday) != 0 {
 		// 1, 2, 3, ... , -5, -4, -3, ...
@@ -49,9 +84,11 @@ func newText(rule ROption, localizer *i18n.Localizer) *text {
 		bymonthday = append(bymonthday, neg...)
 	}
 
-	var weekdays byweekday
+	var weekdays *byweekday
 	if len(rule.Byweekday) != 0 {
-		weekdays.isWeekdays = true
+		weekdays := &byweekday{
+			isWeekdays: true,
+		}
 		everyDay := make(map[Weekday]struct{}, weekLen)
 		cnt := 0
 		for _, w := range rule.Byweekday {
@@ -80,10 +117,11 @@ func newText(rule ROption, localizer *i18n.Localizer) *text {
 	}
 
 	return &text{
-		rule:       rule,
-		loc:        localizer,
-		bymonthday: bymonthday,
-		byweekday:  weekdays,
+		rule:          rule,
+		loc:           localizer,
+		dateFormatter: dateFormatter,
+		bymonthday:    bymonthday,
+		byweekday:     weekdays,
 	}
 }
 
@@ -92,17 +130,221 @@ func (t *text) String() string {
 	t.text.Grow(initialTextLen)
 
 	t.text.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-		ID: "every",
+		ID:    "Every",
 		Other: "every",
 	}}))
 
 	switch t.rule.Freq {
 	case DAILY:
+		t.daily()
+	}
 
+	if !t.rule.Until.IsZero() {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:    "Until",
+			Other: "until",
+		}}))
+		until := t.rule.Until
+		t.add(t.dateFormatter.Format(until.Year(), until.Month(), until.Day()))
+	} else if t.rule.Count != 0 {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "TimeCount",
+				One:   "for {{.Count}} time",
+				Other: "for {{.Count}} times",
+			},
+			TemplateData: map[string]interface{}{
+				"Count": t.rule.Count,
+			},
+			PluralCount: t.rule.Count,
+		}))
+	}
+
+	if !t.isFullyConvertible() {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:    "Approximately",
+			Other: "(~ approximate)",
+		}}))
 	}
 
 	return t.text.String()
 }
+
+func (t *text) daily() {
+	if t.rule.Interval != 1 {
+		t.add(strconv.Itoa(t.rule.Interval))
+	}
+
+	if t.byweekday != nil && t.byweekday.isWeekdays {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "IntervalCountWeekday",
+				Description: "Used after interval count",
+				One:         "weekday",
+				Other:       "weekdays",
+			},
+			PluralCount: t.rule.Interval,
+		}))
+	} else {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "IntervalCountDay",
+				Description: "Used after interval count",
+				One:         "day",
+				Other:       "days",
+			},
+			PluralCount: t.rule.Interval,
+		}))
+	}
+
+	if len(t.rule.Bymonth) != 0 {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:          "In",
+			Description: "Used before by month count",
+			Other:       "in",
+		}}))
+
+		t.addByMonth()
+	}
+
+	if len(t.bymonthday) != 0 {
+		t.addByMonthday()
+	} else if t.byweekday != nil {
+		t.addByWeekday()
+	} else if len(t.rule.Byhour) != 0 {
+		t.addByHour()
+	}
+}
+
+func (t *text) addByMonth() {
+	t.add(t.list(t.rule.Bymonth, IsMONTH, t.loc.MustLocalize(langAnd)))
+}
+
+func (t *text) addByMonthday() {
+	if t.byweekday != nil && len(t.byweekday.allWeeks) != 0 {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:          "OnAllWeeks",
+			Description: "Used before all weeks list",
+			Other:       "on",
+		}}))
+		t.add(t.listWeekday(t.byweekday.allWeeks, t.loc.MustLocalize(langOr)))
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:          "TheAllWeeks",
+			Description: "Used between all weeks list and bymonthday",
+			Other:       "the",
+		}}))
+		t.add(t.list(t.bymonthday, IsNTH, t.loc.MustLocalize(langOr)))
+	} else {
+		t.add(t.loc.MustLocalize(langOnThe))
+		t.add(t.list(t.bymonthday, IsNTH, t.loc.MustLocalize(langAnd)))
+	}
+}
+
+func (t *text) addByWeekday() {
+	if t.byweekday != nil && len(t.byweekday.allWeeks) != 0 && !t.byweekday.isWeekdays {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:          "OnWeekday",
+			Description: "Used before by weekday list",
+			Other:       "on",
+		}}))
+		t.add(t.listWeekday(t.byweekday.allWeeks, ""))
+	}
+	if  t.byweekday != nil && len(t.byweekday.someWeeks) != 0 {
+		if len(t.byweekday.allWeeks) != 0 {
+			t.add(t.loc.MustLocalize(langAnd))
+		}
+
+		t.add(t.loc.MustLocalize(langOnThe))
+		t.add(t.listWeekday(t.byweekday.someWeeks, t.loc.MustLocalize(langAnd)))
+	}
+}
+
+func (t *text) addByHour() {
+	t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+		ID:          "At",
+		Description: "Used before hour list",
+		Other:       "at",
+	}}))
+	t.add(t.list(t.rule.Byhour, IsINT, t.loc.MustLocalize(langAnd)))
+}
+
+func (t *text) isFullyConvertible() bool {
+	if _, ok := implementedFreq[t.rule.Freq]; !ok {
+		return false
+	}
+
+	if !t.rule.Until.IsZero() && t.rule.Count != 0 {
+		return false
+	}
+
+	// TODO: do not know how check exist t.rule.Wkst
+	// TODO: do not know how check exist t.rule.Freq
+	if !t.rule.Dtstart.IsZero() {
+		return true
+	}
+
+	// TODO: implement checks for important values for each Freq
+	//  if (!contains(t.implementedFreq[t.rule.Freq], key)) { return false }
+
+	return false
+}
+
+func (t *text) list(arr []int, mode ListMode, finalDelimiter string) string {
+	delimJoin := func(array []string, finDelimiter string) string {
+		var sb strings.Builder
+		sb.Grow(4*len(arr) + len(finDelimiter) + 2)
+		for i := range arr {
+			if i != 0 {
+				if i == len(array)-1 {
+					sb.WriteByte(spaceByte)
+					sb.WriteString(finalDelimiter)
+					sb.WriteByte(spaceByte)
+				} else {
+					sb.WriteString(comaSpace)
+				}
+			}
+
+			sb.WriteString(array[i])
+		}
+
+		return sb.String()
+	}
+
+	if finalDelimiter != "" {
+		return delimJoin(t.intToStringSlice(arr, mode), finalDelimiter)
+	}
+
+	return strings.Join(t.intToStringSlice(arr, mode), comaSpace)
+}
+
+func (t *text) listWeekday(arr []Weekday, finalDelimiter string) string {
+	delimJoin := func(array []string, finDelimiter string) string {
+		var sb strings.Builder
+		sb.Grow(4*len(arr) + len(finDelimiter) + 2)
+		for i := range arr {
+			if i != 0 {
+				if i == len(array)-1 {
+					sb.WriteByte(spaceByte)
+					sb.WriteString(finalDelimiter)
+					sb.WriteByte(spaceByte)
+				} else {
+					sb.WriteString(comaSpace)
+				}
+			}
+
+			sb.WriteString(array[i])
+		}
+
+		return sb.String()
+	}
+
+	if finalDelimiter != "" {
+		return delimJoin(t.weekdayToStringSlice(arr), finalDelimiter)
+	}
+
+	return strings.Join(t.weekdayToStringSlice(arr), comaSpace)
+}
+
 
 func (t *text) add(s string) {
 	t.text.WriteByte(spaceByte)
@@ -112,4 +354,33 @@ func (t *text) add(s string) {
 // TODO: change to i18n
 func (t text) getText(s string) string {
 	return s
+}
+
+func (t text) weekdayToStringSlice(arr []Weekday) []string {
+	str := make([]string, 0, len(arr))
+	for _, i := range arr {
+		str = append(str, i.String(t.loc))
+	}
+	return str
+}
+
+func (t text) intToStringSlice(arr []int, mode ListMode) []string {
+	str := make([]string, 0, len(arr))
+	for _, i := range arr {
+		str = append(str, t.intToString(i, mode))
+	}
+	return str
+}
+
+func (t text) intToString(i int, mode ListMode) string {
+	switch mode {
+	case IsINT:
+		return strconv.Itoa(i)
+	case IsNTH:
+		return t.dateFormatter.Nth(i)
+	case IsMONTH:
+		return t.dateFormatter.MonthName(time.Month(i))
+	}
+
+	return UNKNOWN
 }

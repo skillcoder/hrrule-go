@@ -1,7 +1,11 @@
 package hrrule
 
 import (
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 // Frequency denotes the period on which the rule is evaluated.
@@ -41,6 +45,40 @@ func (wday *Weekday) N() int {
 // Day returns index of the day in a week (0 for MO, 6 for SU)
 func (wday *Weekday) Day() int {
 	return wday.weekday
+}
+
+const plusByte = '+'
+
+var dayNames = []string{
+	"MO",
+	"TU",
+	"WE",
+	"TH",
+	"FR",
+	"SA",
+	"SU",
+}
+
+// String convert struct to human readable string
+// String returns the English rrule name of the Weekday with number
+func (wday *Weekday) String(loc *i18n.Localizer) string {
+	if MO.weekday <= wday.weekday && wday.weekday <= SU.weekday {
+		var sb strings.Builder
+		sb.Grow(32)
+		if wday.n != 0 {
+			if wday.n > 0 {
+				sb.WriteByte(plusByte)
+			}
+			sb.WriteString(strconv.Itoa(wday.n))
+			sb.WriteString(dayNames[wday.weekday])
+			return sb.String()
+		}
+
+		sb.WriteString(dayNames[wday.weekday])
+		return sb.String()
+	}
+
+	return "%!Weekday(" + strconv.Itoa(wday.weekday) + ", " +strconv.Itoa(wday.n)+ ")"
 }
 
 // Weekdays
