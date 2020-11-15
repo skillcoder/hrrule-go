@@ -9,13 +9,17 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
-const weekLen = 7
-const initialTextLen = 64
-const spaceByte = ' '
-const comaSpace = ", "
+const (
+	weekLen        = 7
+	workLen        = 5
+	initialTextLen = 64
+	spaceByte      = ' '
+	comaSpace      = ", "
+)
 
 var implementedFreq = map[Frequency]struct{}{
-	DAILY: {},
+	DAILY:  {},
+	WEEKLY: {},
 }
 
 type ListMode int
@@ -55,7 +59,7 @@ type byweekday struct {
 }
 
 type text struct {
-	rule          ROption
+	rule          *ROption
 	loc           *i18n.Localizer
 	dateFormatter DateFormatter
 	bymonthday    []int
@@ -63,7 +67,7 @@ type text struct {
 	text          strings.Builder
 }
 
-func newText(rule ROption, localizer *i18n.Localizer, dateFormatter DateFormatter) *text {
+func newText(rule *ROption, localizer *i18n.Localizer, dateFormatter DateFormatter) *text {
 	bymonthday := make([]int, 0, len(rule.Bymonthday))
 	if len(rule.Bymonthday) != 0 {
 		// 1, 2, 3, ... , -5, -4, -3, ...
@@ -86,14 +90,20 @@ func newText(rule ROption, localizer *i18n.Localizer, dateFormatter DateFormatte
 
 	var weekdays *byweekday
 	if len(rule.Byweekday) != 0 {
-		weekdays := &byweekday{
+		weekdays = &byweekday{
 			isWeekdays: true,
 		}
 		everyDay := make(map[Weekday]struct{}, weekLen)
-		cnt := 0
+		workDay := make(map[Weekday]struct{}, workLen)
+		cntEvery := 0
+		cntWork := 0
 		for _, w := range rule.Byweekday {
 			if _, ok := everyDay[w]; !ok {
-				cnt++
+				cntEvery++
+			}
+
+			if _, ok := workDay[w]; !ok {
+				cntWork++
 			}
 
 			if w == SU || w == SA {
@@ -108,8 +118,12 @@ func newText(rule ROption, localizer *i18n.Localizer, dateFormatter DateFormatte
 			weekdays.someWeeks = append(weekdays.someWeeks, w)
 		}
 
-		if cnt == weekLen {
+		if cntEvery == weekLen {
 			weekdays.isEveryDay = true
+		}
+
+		if cntWork != workLen {
+			weekdays.isWeekdays = false
 		}
 
 		sort.Slice(weekdays.allWeeks, func(i, j int) bool { return weekdays.allWeeks[i].Day() < weekdays.allWeeks[j].Day() })
@@ -137,6 +151,8 @@ func (t *text) String() string {
 	switch t.rule.Freq {
 	case DAILY:
 		t.daily()
+	case WEEKLY:
+		t.weekly()
 	}
 
 	if !t.rule.Until.IsZero() {
@@ -151,6 +167,9 @@ func (t *text) String() string {
 			DefaultMessage: &i18n.Message{
 				ID:    "TimeCount",
 				One:   "for {{.Count}} time",
+				Two:   "for {{.Count}} times",
+				Few:   "for {{.Count}} times",
+				Many:  "for {{.Count}} times",
 				Other: "for {{.Count}} times",
 			},
 			TemplateData: map[string]interface{}{
@@ -181,6 +200,9 @@ func (t *text) daily() {
 				ID:          "IntervalCountWeekday",
 				Description: "Used after interval count",
 				One:         "weekday",
+				Two:         "weekdays",
+				Few:         "weekdays",
+				Many:        "weekdays",
 				Other:       "weekdays",
 			},
 			PluralCount: t.rule.Interval,
@@ -191,6 +213,9 @@ func (t *text) daily() {
 				ID:          "IntervalCountDay",
 				Description: "Used after interval count",
 				One:         "day",
+				Two:         "days",
+				Few:         "days",
+				Many:        "days",
 				Other:       "days",
 			},
 			PluralCount: t.rule.Interval,
@@ -213,6 +238,84 @@ func (t *text) daily() {
 		t.addByWeekday()
 	} else if len(t.rule.Byhour) != 0 {
 		t.addByHour()
+	}
+}
+
+func (t *text) weekly() {
+	if t.rule.Interval != 1 {
+		t.add(strconv.Itoa(t.rule.Interval))
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "IntervalCountWeeks",
+				Description: "Used after interval count",
+				One:         "week",
+				Two:         "weeks",
+				Few:         "weeks",
+				Many:        "weeks",
+				Other:       "weeks",
+			},
+			PluralCount: t.rule.Interval,
+		}))
+	}
+
+	if t.byweekday != nil && t.byweekday.isWeekdays {
+		if t.rule.Interval == 1 {
+			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+				DefaultMessage: &i18n.Message{
+					ID:          "IntervalCountWeekdays",
+					Description: "Used before weekdays",
+					One:         "weekday",
+					Two:         "weekdays",
+					Few:         "weekdays",
+					Many:        "weekdays",
+					Other:       "weekdays",
+				},
+				PluralCount: t.rule.Interval,
+			}))
+		} else {
+			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+				ID:          "OnWeekdays",
+				Description: "Used before weekdays list",
+				Other:       "on weekdays",
+			}}))
+		}
+	} else if t.byweekday != nil && t.byweekday.isEveryDay {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "IntervalCountDays",
+				Description: "Used after interval count if every day",
+				One:         "day",
+				Two:         "days",
+				Few:         "days",
+				Many:        "days",
+				Other:       "days",
+			},
+			PluralCount: t.rule.Interval,
+		}))
+	} else {
+		if t.rule.Interval == 1 {
+			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+				ID:          "Week",
+				Description: "Used after interval count",
+				Other:       "week",
+			}}))
+		}
+
+		if len(t.rule.Bymonth) != 0 {
+			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+				ID:          "In",
+				Description: "Used before by month count",
+				Other:       "in",
+			}}))
+
+			t.addByMonth()
+		}
+
+		if len(t.bymonthday) != 0 {
+			t.addByMonthday()
+		} else if t.byweekday != nil {
+			t.addByWeekday()
+		}
 	}
 }
 
@@ -249,7 +352,7 @@ func (t *text) addByWeekday() {
 		}}))
 		t.add(t.listWeekday(t.byweekday.allWeeks, ""))
 	}
-	if  t.byweekday != nil && len(t.byweekday.someWeeks) != 0 {
+	if t.byweekday != nil && len(t.byweekday.someWeeks) != 0 {
 		if len(t.byweekday.allWeeks) != 0 {
 			t.add(t.loc.MustLocalize(langAnd))
 		}
@@ -286,7 +389,7 @@ func (t *text) isFullyConvertible() bool {
 	// TODO: implement checks for important values for each Freq
 	//  if (!contains(t.implementedFreq[t.rule.Freq], key)) { return false }
 
-	return false
+	return true
 }
 
 func (t *text) list(arr []int, mode ListMode, finalDelimiter string) string {
@@ -345,7 +448,6 @@ func (t *text) listWeekday(arr []Weekday, finalDelimiter string) string {
 	return strings.Join(t.weekdayToStringSlice(arr), comaSpace)
 }
 
-
 func (t *text) add(s string) {
 	t.text.WriteByte(spaceByte)
 	t.text.WriteString(s)
@@ -358,8 +460,8 @@ func (t text) getText(s string) string {
 
 func (t text) weekdayToStringSlice(arr []Weekday) []string {
 	str := make([]string, 0, len(arr))
-	for _, i := range arr {
-		str = append(str, i.String(t.loc))
+	for i := range arr {
+		str = append(str, t.dateFormatter.WeekdayName(arr[i]))
 	}
 	return str
 }

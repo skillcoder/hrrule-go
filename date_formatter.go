@@ -8,11 +8,12 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
-const commaByte = ','
-const monthLayout   = "January"
-const weekDayLayout = "Monday"
-
-const UNKNOWN = "UNKNOWN"
+const (
+	commaByte     = ','
+	monthLayout   = "January"
+	weekDayLayout = "Monday"
+	UNKNOWN       = "UNKNOWN"
+)
 
 var longMonthNames = []string{
 	"January",
@@ -27,6 +28,16 @@ var longMonthNames = []string{
 	"October",
 	"November",
 	"December",
+}
+
+var longDayNames = []string{
+	"Monday",
+	"Tuesday",
+	"Wednesday",
+	"Thursday",
+	"Friday",
+	"Saturday",
+	"Sunday",
 }
 
 type formatterImpl struct {
@@ -65,10 +76,28 @@ func (df *formatterImpl) Nth(i int) string {
 }
 
 // TODO: implement me
-func (df *formatterImpl) WeekdayName(i int) string {
-	return strconv.Itoa(i)
+func (df *formatterImpl) WeekdayName(wDay Weekday) string {
+	weekday := getGoWeekday(wDay.weekday)
+	var sb strings.Builder
+	sb.Grow(16)
+	if wDay.n != 0 {
+		sb.WriteString(df.Nth(wDay.n))
+		sb.WriteByte(spaceByte)
+	}
+
+	sb.WriteString(time.Weekday(weekday).String())
+
+	return sb.String()
 }
 
 func monthName(month time.Month, _ *i18n.Localizer) string {
 	return month.String()
+}
+
+func getGoWeekday(num int) int {
+	if num == 6 {
+		return 0
+	}
+
+	return num + 1
 }

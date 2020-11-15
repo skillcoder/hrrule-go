@@ -4,8 +4,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
 // Frequency denotes the period on which the rule is evaluated.
@@ -61,7 +59,7 @@ var dayNames = []string{
 
 // String convert struct to human readable string
 // String returns the English rrule name of the Weekday with number
-func (wday *Weekday) String(loc *i18n.Localizer) string {
+func (wday *Weekday) String() string {
 	if MO.weekday <= wday.weekday && wday.weekday <= SU.weekday {
 		var sb strings.Builder
 		sb.Grow(32)
@@ -78,7 +76,7 @@ func (wday *Weekday) String(loc *i18n.Localizer) string {
 		return sb.String()
 	}
 
-	return "%!Weekday(" + strconv.Itoa(wday.weekday) + ", " +strconv.Itoa(wday.n)+ ")"
+	return "%!Weekday(" + strconv.Itoa(wday.weekday) + ", " + strconv.Itoa(wday.n) + ")"
 }
 
 // Weekdays
