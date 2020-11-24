@@ -28,6 +28,13 @@ type Weekday struct {
 	n       int
 }
 
+func NewWeekday(weekday int, n int) Weekday {
+	return Weekday{
+		weekday: weekday,
+		n:       n,
+	}
+}
+
 // Nth return the nth weekday
 // __call__ - Cannot call the object directly,
 // do it through e.g. TH.nth(-1) instead,

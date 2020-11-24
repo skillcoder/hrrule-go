@@ -8,10 +8,13 @@ type HRRule struct {
 	bundle *i18n.Bundle
 }
 
-func New() (Humanizer, error) {
-	bundle, err := NewI18NBundle()
-	if err != nil {
-		return nil, err
+func New(bundle *i18n.Bundle) (Humanizer, error) {
+	if bundle == nil {
+		var err error
+		bundle, err = NewI18NBundle()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &HRRule{
