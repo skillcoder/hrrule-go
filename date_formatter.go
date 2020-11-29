@@ -72,7 +72,52 @@ func (df *formatterImpl) MonthName(month time.Month) string {
 // Nth return int with suffix
 // TODO: implement me
 func (df *formatterImpl) Nth(i int) string {
-	return strconv.Itoa(i)
+	var last string
+
+	if i < 0 {
+		last = df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:    "Last",
+			Other: "last",
+		}})
+	}
+
+	if i == -1 {
+		return last
+	}
+
+	nPos := abs(i)
+	var nth strings.Builder
+	nth.WriteString(strconv.Itoa(nPos))
+	switch nPos {
+	case 1, 21, 31:
+		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:    "Suffix for 1, 21, 31",
+			Other: "st",
+		}}))
+	case 2, 22:
+		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:    "Suffix for 2, 22",
+			Other: "nd",
+		}}))
+	case 3, 23:
+		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:    "Suffix for 3, 23",
+			Other: "rd",
+		}}))
+	default:
+		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:    "Suffix for other numbers",
+			Other: "th",
+		}}))
+	}
+
+	if i < 0 {
+		nth.WriteByte(spaceByte)
+		nth.WriteString(last)
+		return nth.String()
+	}
+
+	return nth.String()
 }
 
 // TODO: implement me
@@ -100,4 +145,12 @@ func getGoWeekday(num int) int {
 	}
 
 	return num + 1
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+
+	return n
 }

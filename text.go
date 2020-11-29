@@ -20,6 +20,8 @@ const (
 var implementedFreq = map[Frequency]struct{}{
 	DAILY:  {},
 	WEEKLY: {},
+	MONTHLY: {},
+	YEARLY: {},
 }
 
 type ListMode int
@@ -153,6 +155,10 @@ func (t *text) String() string {
 		t.daily()
 	case WEEKLY:
 		t.weekly()
+	case MONTHLY:
+		t.monthly()
+	case YEARLY:
+		t.yearly()
 	}
 
 	if !t.rule.Until.IsZero() {
@@ -316,6 +322,139 @@ func (t *text) weekly() {
 		} else if t.byweekday != nil {
 			t.addByWeekday()
 		}
+	}
+}
+
+func (t *text) monthly() {
+	if len(t.rule.Bymonth) != 0 {
+		if t.rule.Interval != 1 {
+			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+				DefaultMessage: &i18n.Message{
+					ID:          "IntervalCountMonths",
+					Description: "Used for months by month",
+					One:         "{{.Interval}} month",
+					Two:         "{{.Interval}} months in",
+					Few:         "{{.Interval}} months in",
+					Many:        "{{.Interval}} months in",
+					Other:       "{{.Interval}} months in",
+				},
+				TemplateData: map[string]interface{}{
+					"Interval": t.rule.Interval,
+				},
+				PluralCount: t.rule.Interval,
+			}))
+		}
+
+		t.addByMonth()
+	} else {
+		if t.rule.Interval != 1 {
+			t.add(strconv.Itoa(t.rule.Interval))
+		}
+
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "IntervalMonths",
+				Description: "Used after interval monthly",
+				One:         "month",
+				Two:         "months",
+				Few:         "months",
+				Many:        "months",
+				Other:       "months",
+			},
+			PluralCount: t.rule.Interval,
+		}))
+	}
+
+	if len(t.bymonthday) != 0 {
+		t.addByMonthday()
+	} else if t.byweekday != nil && t.byweekday.isWeekdays {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:          "OnWeekdays",
+			Description: "Used if on every work weekdays on week",
+			Other:       "on weekdays",
+		}}))
+	} else if t.byweekday != nil {
+		t.addByWeekday()
+	}
+}
+
+func (t *text) yearly() {
+	if len(t.rule.Bymonth) != 0 {
+		if t.rule.Interval != 1 {
+			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+				DefaultMessage: &i18n.Message{
+					ID:          "IntervalYearlyByMonth",
+					Description: "Used for years by month",
+					One:         "{{.Interval}} year",
+					Two:         "{{.Interval}} years",
+					Few:         "{{.Interval}} years",
+					Many:        "{{.Interval}} years",
+					Other:       "{{.Interval}} years",
+				},
+				TemplateData: map[string]interface{}{
+					"Interval": t.rule.Interval,
+				},
+				PluralCount: t.rule.Interval,
+			}))
+		}
+
+		t.addByMonth()
+	} else {
+		if t.rule.Interval != 1 {
+			t.add(strconv.Itoa(t.rule.Interval))
+		}
+
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "IntervalYears",
+				Description: "Used after interval yearly",
+				One:         "year",
+				Two:         "years",
+				Few:         "years",
+				Many:        "years",
+				Other:       "years",
+			},
+			PluralCount: t.rule.Interval,
+		}))
+	}
+
+	if len(t.bymonthday) != 0 {
+		t.addByMonthday()
+	} else if t.byweekday != nil {
+		t.addByWeekday()
+	}
+
+	if len(t.rule.Byyearday) != 0 {
+		t.add(t.loc.MustLocalize(langOnThe))
+		t.add(t.list(t.rule.Byyearday, IsNTH, t.loc.MustLocalize(langAnd)))
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:          "ByYearDay",
+			Description: "Used after by year day",
+			Other:       "day",
+		}}))
+	}
+
+	if len(t.rule.Byweekno) != 0 {
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
+			ID:          "InWeekNo",
+			Description: "Used before by week no",
+			Other:       "in",
+		}}))
+
+		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "CountWeekNo",
+				Description: "Used before WeekNo list",
+				One:         "week",
+				Two:         "weeks",
+				Few:         "weeks",
+				Many:        "weeks",
+				Other:       "weeks",
+			},
+			PluralCount: len(t.rule.Byweekno),
+		}))
+
+		t.add(t.list(t.rule.Byweekno, IsINT, t.loc.MustLocalize(langAnd)))
 	}
 }
 
