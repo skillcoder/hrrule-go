@@ -1,0 +1,158 @@
+Approximately = "(~ approximate)"
+Every = "every"
+Until = "until"
+
+[And]
+description = "Used for final delimiter in list"
+other = "and"
+
+[At]
+description = "Used before hour list"
+other = "at"
+
+[ByYearDay]
+description = "Used after by year day"
+other = "day"
+
+[CountWeekNo]
+description = "Used before WeekNo list"
+few = "weeks"
+many = "weeks"
+one = "week"
+other = "weeks"
+two = "weeks"
+
+[First]
+description = "Suffix for 1, 21, 31"
+other = "st"
+
+[In]
+description = "Used before by month count"
+other = "in"
+
+[InWeekNo]
+description = "Used before by week no"
+other = "in"
+
+[IntervalCountDay]
+description = "Used after interval count"
+few = "days"
+many = "days"
+one = "day"
+other = "days"
+two = "days"
+
+[IntervalCountDays]
+description = "Used after interval count if every day"
+few = "days"
+many = "days"
+one = "day"
+other = "days"
+two = "days"
+
+[IntervalCountMonths]
+description = "Used for months by month"
+few = "{{.Interval}} months in"
+many = "{{.Interval}} months in"
+one = "{{.Interval}} month"
+other = "{{.Interval}} months in"
+two = "{{.Interval}} months in"
+
+[IntervalCountWeekday]
+description = "Used after interval count"
+few = "weekdays"
+many = "weekdays"
+one = "weekday"
+other = "weekdays"
+two = "weekdays"
+
+[IntervalCountWeekdays]
+description = "Used before weekdays"
+few = "weekdays"
+many = "weekdays"
+one = "weekday"
+other = "weekdays"
+two = "weekdays"
+
+[IntervalCountWeeks]
+description = "Used after interval count"
+few = "weeks"
+many = "weeks"
+one = "week"
+other = "weeks"
+two = "weeks"
+
+[IntervalMonths]
+description = "Used after interval monthly"
+few = "months"
+many = "months"
+one = "month"
+other = "months"
+two = "months"
+
+[IntervalYearlyByMonth]
+description = "Used for years by month"
+few = "{{.Interval}} years"
+many = "{{.Interval}} years"
+one = "{{.Interval}} year"
+other = "{{.Interval}} years"
+two = "{{.Interval}} years"
+
+[IntervalYears]
+description = "Used after interval yearly"
+few = "years"
+many = "years"
+one = "year"
+other = "years"
+two = "years"
+
+[Last]
+description = "The last for Nth return int with suffix"
+other = "last"
+
+[OnAllWeeks]
+description = "Used before all weeks list"
+other = "on"
+
+[OnThe]
+description = "Used before list bymonthday, byweekday, byyearday and someWeeks"
+other = "on the"
+
+[OnWeekday]
+description = "Used before by weekday list"
+other = "on"
+
+[OnWeekdays]
+description = "Used if on every work weekdays on week"
+other = "on weekdays"
+
+[Or]
+description = "Used for final delimiter in list"
+other = "or"
+
+[Second]
+description = "Suffix for 2, 22"
+other = "nd"
+
+[ThOther]
+description = "Suffix for other numbers"
+other = "th"
+
+[TheAllWeeks]
+description = "Used between all weeks list and bymonthday"
+other = "the"
+
+[Third]
+description = "Suffix for 3, 23"
+other = "rd"
+
+[TimeCount]
+few = "for {{.Count}} times"
+many = "for {{.Count}} times"
+one = "for {{.Count}} time"
+other = "for {{.Count}} times"
+two = "for {{.Count}} times"
+
+[Week]
+description = "Used after interval count"
+other = "week"

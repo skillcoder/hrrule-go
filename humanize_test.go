@@ -61,9 +61,16 @@ func TestHRRule_Humanize(t *testing.T) {
 			want:       "every year on the 256th day for 10 times",
 			wantErr:    false,
 		},
+		{
+			name:       "every month on the last Friday until 29 December 2024",
+			lang:       "en-US",
+			inputRRule: "FREQ=MONTHLY;INTERVAL=1;BYDAY=-1FR;UNTIL=20241229T155400Z",
+			want:       "every month on the last Friday until 29 December 2024",
+			wantErr:    false,
+		},
 	}
 
-	bundle, err := NewI18NBundle()
+	bundle, err := NewI18NBundle("./l10n")
 	if err != nil {
 		t.Fatalf("create bundle: %v", err)
 	}

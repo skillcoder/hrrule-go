@@ -9,11 +9,11 @@ import (
 	"golang.org/x/text/language"
 )
 
-func NewI18NBundle() (*i18n.Bundle, error) {
-	bundle := i18n.NewBundle(language.English)
+func NewI18NBundle(path string) (*i18n.Bundle, error) {
+	bundle := i18n.NewBundle(language.AmericanEnglish)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
-	err := filepath.Walk("l10n", getWalkFunc(bundle))
+	err := filepath.Walk(path, getWalkFunc(bundle))
 	if err != nil {
 		return nil, err
 	}

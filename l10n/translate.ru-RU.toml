@@ -1,0 +1,184 @@
+[And]
+description = "Used for final delimiter in list"
+hash = "sha1-9449a6823e7720df7373ff0186e704fecefa936e"
+other = "и"
+
+[Approximately]
+hash = "sha1-3026612cad5ff47b8c87b55f5b818f7be56a76ec"
+other = "(~ примерно)"
+
+[At]
+description = "Used before hour list"
+hash = "sha1-5daba4a95306d977af6fc592cb7f5840bfd41575"
+other = "в"
+
+[ByYearDay]
+description = "Used after by year day"
+hash = "sha1-9cbcc83625360b8301008abf43ab165b19b68096"
+other = "день"
+
+[CountWeekNo]
+description = "Used before WeekNo list"
+few = "неделю"
+hash = "sha1-74cdf9b04a31282bf1c5aea6af2eb9a5c935dd66"
+many = "неделю"
+one = "неделю"
+two = "неделю"
+other = "неделю"
+
+[Every]
+hash = "sha1-5873f666d03fb3fb39d0db9c71b5e1f769334088"
+other = "каждые"
+
+[First]
+description = "Suffix for 1, 21, 31"
+hash = "sha1-4159a10a93ed465486d0f9442c7094e133a625cf"
+other = "ый"
+
+[In]
+description = "Used before by month count"
+hash = "sha1-276192ab31e0da8b6ba3e3546f79cefe65a5603e"
+other = "в"
+
+[InWeekNo]
+description = "Used before by week no"
+hash = "sha1-b5e709d5774a485a02691700928d26943259f95e"
+other = "в"
+
+[IntervalCountDay]
+description = "Used after interval count"
+few = "день"
+hash = "sha1-9bd7d83335b4c02c97549789ec1dba82291ce413"
+many = "день"
+one = "день"
+other = "день"
+
+[IntervalCountDays]
+description = "Used after interval count if every day"
+few = "день"
+hash = "sha1-c551ce4e4ece468ef27a10e9a75c946999920851"
+many = "день"
+one = "день"
+other = "день"
+
+[IntervalCountMonths]
+description = "Used for months by month"
+few = "{{.Interval}} месяц в"
+hash = "sha1-49082975df31347c6ec24aafcebc92bc1be52cce"
+many = "{{.Interval}} месяц в"
+one = "{{.Interval}} месяц в"
+other = "{{.Interval}} месяц в"
+
+[IntervalCountWeekday]
+description = "Used after interval count"
+few = "рабочий день"
+hash = "sha1-9a7bba1ba8cd8872689461bc5045a6f7b2415670"
+many = "рабочий день"
+one = "рабочий день"
+other = "рабочий день"
+
+[IntervalCountWeekdays]
+description = "Used before weekdays"
+few = "рабочий день"
+hash = "sha1-5bdb800944133681c54a724dbf15d0f825c4c9fb"
+many = "рабочий день"
+one = "рабочий день"
+other = "рабочий день"
+
+[IntervalCountWeeks]
+description = "Used after interval count"
+few = "неделю"
+hash = "sha1-af8db46aa6f6aca76f1ba3f2afdfed767c2441e5"
+many = "неделю"
+one = "неделю"
+other = "неделю"
+
+[IntervalMonths]
+description = "Used after interval monthly"
+few = "месяц"
+hash = "sha1-a68e67c084dc23c14ef20c15461d1141d2675816"
+many = "месяц"
+one = "месяц"
+other = "месяц"
+
+[IntervalYearlyByMonth]
+description = "Used for years by month"
+few = "{{.Interval}} год"
+hash = "sha1-e226cd65a02dee523bf80917030b670d0882dd55"
+many = "{{.Interval}} год"
+one = "{{.Interval}} год"
+other = "{{.Interval}} год"
+
+[IntervalYears]
+description = "Used after interval yearly"
+few = "год"
+hash = "sha1-a00c8b6edca9fd38a71595160e4457e16ec60bd9"
+many = "год"
+one = "год"
+other = "год"
+
+[Last]
+description = "The last for Nth return int with suffix"
+hash = "sha1-14bec69fc7670cd6cb90710ef22c3a4c7d7b4d34"
+other = "последний"
+
+[OnAllWeeks]
+description = "Used before all weeks list"
+hash = "sha1-75c736ef8f9c00c36e6b905033c0b39901eb4289"
+other = "в"
+
+[OnThe]
+description = "Used before list bymonthday, byweekday, byyearday and someWeeks"
+hash = "sha1-6c04773a7792624e9f6fb95c133033f64aa261eb"
+other = "в"
+
+[OnWeekday]
+description = "Used before by weekday list"
+hash = "sha1-0005f351c5a7815a290f23035b12e971a2d28722"
+other = "на"
+
+[OnWeekdays]
+description = "Used if on every work weekdays on week"
+hash = "sha1-d67c1c56dbf5f260e22bfa3829653393bd217e4a"
+other = "всю рабочую неделю"
+
+[Or]
+description = "Used for final delimiter in list"
+hash = "sha1-5570d406e967c7dbad146faf306176905dbed717"
+other = "или"
+
+[Second]
+description = "Suffix for 2, 22"
+hash = "sha1-03d1b21c279e5666c9422fb8f83c079bb42be498"
+other = "ой"
+
+[ThOther]
+description = "Suffix for other numbers"
+hash = "sha1-7d45101f7295b1e9f8ac4dabd84589cb54c30e3a"
+other = "ий"
+
+[TheAllWeeks]
+description = "Used between all weeks list and bymonthday"
+hash = "sha1-b883b0414a21b777bb70ebc054772c9ed28defbe"
+other = ""
+
+[Third]
+description = "Suffix for 3, 23"
+hash = "sha1-be24f0734b263f04a461434dd26a0366c17dd392"
+other = "ый"
+
+[TimeCount]
+few = "{{.Count}} раза"
+hash = "sha1-8f6e1e1d1507ab56e2c4a7168eeced59fe91f5e0"
+many = "for {{.Count}} раза"
+one = "for {{.Count}} раз"
+other = "for {{.Count}} раз"
+
+[Until]
+hash = "sha1-b310f4d4d89b8570184b9777ad7d90fc1df20457"
+other = "до"
+
+[Week]
+description = "Used after interval count"
+hash = "sha1-3572e61a685a6b8bc7e343056f567bd3e085a542"
+other = "неделя"

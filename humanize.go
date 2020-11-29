@@ -11,7 +11,7 @@ type HRRule struct {
 func New(bundle *i18n.Bundle) (Humanizer, error) {
 	if bundle == nil {
 		var err error
-		bundle, err = NewI18NBundle()
+		bundle, err = NewI18NBundle("./l10n")
 		if err != nil {
 			return nil, err
 		}

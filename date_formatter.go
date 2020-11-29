@@ -70,13 +70,13 @@ func (df *formatterImpl) MonthName(month time.Month) string {
 }
 
 // Nth return int with suffix
-// TODO: implement me
 func (df *formatterImpl) Nth(i int) string {
 	var last string
 
 	if i < 0 {
 		last = df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
 			ID:    "Last",
+			Description: "The last for Nth return int with suffix",
 			Other: "last",
 		}})
 	}
@@ -91,23 +91,27 @@ func (df *formatterImpl) Nth(i int) string {
 	switch nPos {
 	case 1, 21, 31:
 		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:    "Suffix for 1, 21, 31",
-			Other: "st",
+			ID:          "First",
+			Description: "Suffix for 1, 21, 31",
+			Other:       "st",
 		}}))
 	case 2, 22:
 		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:    "Suffix for 2, 22",
-			Other: "nd",
+			ID:          "Second",
+			Description: "Suffix for 2, 22",
+			Other:       "nd",
 		}}))
 	case 3, 23:
 		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:    "Suffix for 3, 23",
-			Other: "rd",
+			ID:          "Third",
+			Description: "Suffix for 3, 23",
+			Other:       "rd",
 		}}))
 	default:
 		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:    "Suffix for other numbers",
-			Other: "th",
+			ID:          "ThOther",
+			Description: "Suffix for other numbers",
+			Other:       "th",
 		}}))
 	}
 
