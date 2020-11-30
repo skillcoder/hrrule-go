@@ -68,6 +68,13 @@ func TestHRRule_Humanize(t *testing.T) {
 			want:       "every month on the last Friday until 29 December 2024",
 			wantErr:    false,
 		},
+		{
+			name:       "every month on Thursday until 3 December 2021",
+			lang:       "en-US",
+			inputRRule: "FREQ=MONTHLY;UNTIL=20211203T160000Z;INTERVAL=1;WKST=MO;BYDAY=TH;BYSETPOS=1",
+			want:       "every month on Thursday until 3 December 2021",
+			wantErr:    false,
+		},
 	}
 
 	bundle, err := NewI18NBundle("./l10n")
