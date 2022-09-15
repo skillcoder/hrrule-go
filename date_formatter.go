@@ -74,11 +74,12 @@ func (df *formatterImpl) Nth(i int) string {
 	var last string
 
 	if i < 0 {
-		last = df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:    "Last",
-			Description: "The last for Nth return int with suffix",
-			Other: "last",
-		}})
+		last, _ = df.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "Last",
+				Description: "The last for Nth return int with suffix",
+				Other:       "last",
+			}})
 	}
 
 	if i == -1 {
@@ -87,33 +88,40 @@ func (df *formatterImpl) Nth(i int) string {
 
 	nPos := abs(i)
 	var nth strings.Builder
+	var localizedString string
+
 	nth.WriteString(strconv.Itoa(nPos))
 	switch nPos {
 	case 1, 21, 31:
-		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "First",
-			Description: "Suffix for 1, 21, 31",
-			Other:       "st",
-		}}))
+		localizedString, _ = df.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "First",
+				Description: "Suffix for 1, 21, 31",
+				Other:       "st",
+			}})
 	case 2, 22:
-		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "Second",
-			Description: "Suffix for 2, 22",
-			Other:       "nd",
-		}}))
+		localizedString, _ = df.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "Second",
+				Description: "Suffix for 2, 22",
+				Other:       "nd",
+			}})
 	case 3, 23:
-		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "Third",
-			Description: "Suffix for 3, 23",
-			Other:       "rd",
-		}}))
+		localizedString, _ = df.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "Third",
+				Description: "Suffix for 3, 23",
+				Other:       "rd",
+			}})
 	default:
-		nth.WriteString(df.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "ThOther",
-			Description: "Suffix for other numbers",
-			Other:       "th",
-		}}))
+		localizedString, _ = df.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "ThOther",
+				Description: "Suffix for other numbers",
+				Other:       "th",
+			}})
 	}
+	nth.WriteString(localizedString)
 
 	if i < 0 {
 		nth.WriteByte(spaceByte)
@@ -139,8 +147,14 @@ func (df *formatterImpl) WeekdayName(wDay Weekday) string {
 	return sb.String()
 }
 
-func monthName(month time.Month, _ *i18n.Localizer) string {
-	return month.String()
+func monthName(month time.Month, loc *i18n.Localizer) string {
+	monthLoc, _ := loc.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:          month.String(),
+			Description: "Used instead of month number",
+			Other:       month.String(),
+		}})
+	return monthLoc
 }
 
 func getGoWeekday(num int) int {

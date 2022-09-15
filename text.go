@@ -18,10 +18,10 @@ const (
 )
 
 var implementedFreq = map[Frequency]struct{}{
-	DAILY:  {},
-	WEEKLY: {},
+	DAILY:   {},
+	WEEKLY:  {},
 	MONTHLY: {},
-	YEARLY: {},
+	YEARLY:  {},
 }
 
 type ListMode int
@@ -145,10 +145,12 @@ func (t *text) String() string {
 	t.text.Reset()
 	t.text.Grow(initialTextLen)
 
-	t.text.WriteString(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-		ID:    "Every",
-		Other: "every",
-	}}))
+	localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:    "Every",
+			Other: "every",
+		}})
+	t.text.WriteString(localizedString)
 
 	switch t.rule.Freq {
 	case DAILY:
@@ -162,14 +164,17 @@ func (t *text) String() string {
 	}
 
 	if !t.rule.Until.IsZero() {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:    "Until",
-			Other: "until",
-		}}))
+		localizedString, _ = t.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "Until",
+				Other: "until",
+			}})
+		t.add(localizedString)
+
 		until := t.rule.Until
 		t.add(t.dateFormatter.Format(until.Year(), until.Month(), until.Day()))
 	} else if t.rule.Count != 0 {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+		localizedString, _ = t.loc.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
 				ID:    "TimeCount",
 				One:   "for {{.Count}} time",
@@ -182,14 +187,17 @@ func (t *text) String() string {
 				"Count": t.rule.Count,
 			},
 			PluralCount: t.rule.Count,
-		}))
+		})
+		t.add(localizedString)
 	}
 
 	if !t.isFullyConvertible() {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:    "Approximately",
-			Other: "(~ approximate)",
-		}}))
+		localizedString, _ = t.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:    "Approximately",
+				Other: "(~ approximate)",
+			}})
+		t.add(localizedString)
 	}
 
 	return t.text.String()
@@ -201,7 +209,7 @@ func (t *text) daily() {
 	}
 
 	if t.byweekday != nil && t.byweekday.isWeekdays {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
 				ID:          "IntervalCountWeekday",
 				Description: "Used after interval count",
@@ -212,9 +220,10 @@ func (t *text) daily() {
 				Other:       "weekdays",
 			},
 			PluralCount: t.rule.Interval,
-		}))
+		})
+		t.add(localizedString)
 	} else {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
 				ID:          "IntervalCountDay",
 				Description: "Used after interval count",
@@ -225,15 +234,18 @@ func (t *text) daily() {
 				Other:       "days",
 			},
 			PluralCount: t.rule.Interval,
-		}))
+		})
+		t.add(localizedString)
 	}
 
 	if len(t.rule.Bymonth) != 0 {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "In",
-			Description: "Used before by month count",
-			Other:       "in",
-		}}))
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "In",
+				Description: "Used before by month count",
+				Other:       "in",
+			}})
+		t.add(localizedString)
 
 		t.addByMonth()
 	}
@@ -250,7 +262,7 @@ func (t *text) daily() {
 func (t *text) weekly() {
 	if t.rule.Interval != 1 {
 		t.add(strconv.Itoa(t.rule.Interval))
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
 				ID:          "IntervalCountWeeks",
 				Description: "Used after interval count",
@@ -261,12 +273,13 @@ func (t *text) weekly() {
 				Other:       "weeks",
 			},
 			PluralCount: t.rule.Interval,
-		}))
+		})
+		t.add(localizedString)
 	}
 
 	if t.byweekday != nil && t.byweekday.isWeekdays {
 		if t.rule.Interval == 1 {
-			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
 				DefaultMessage: &i18n.Message{
 					ID:          "IntervalCountWeekdays",
 					Description: "Used before weekdays",
@@ -277,16 +290,19 @@ func (t *text) weekly() {
 					Other:       "weekdays",
 				},
 				PluralCount: t.rule.Interval,
-			}))
+			})
+			t.add(localizedString)
 		} else {
-			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-				ID:          "OnWeekdays",
-				Description: "Used before weekdays list",
-				Other:       "on weekdays",
-			}}))
+			localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
+				DefaultMessage: &i18n.Message{
+					ID:          "OnWeekdays",
+					Description: "Used before weekdays list",
+					Other:       "on weekdays",
+				}})
+			t.add(localizedString)
 		}
 	} else if t.byweekday != nil && t.byweekday.isEveryDay {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
 				ID:          "IntervalCountDays",
 				Description: "Used after interval count if every day",
@@ -297,22 +313,27 @@ func (t *text) weekly() {
 				Other:       "days",
 			},
 			PluralCount: t.rule.Interval,
-		}))
+		})
+		t.add(localizedString)
 	} else {
 		if t.rule.Interval == 1 {
-			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-				ID:          "Week",
-				Description: "Used after interval count",
-				Other:       "week",
-			}}))
+			localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
+				DefaultMessage: &i18n.Message{
+					ID:          "Week",
+					Description: "Used after interval count",
+					Other:       "week",
+				}})
+			t.add(localizedString)
 		}
 
 		if len(t.rule.Bymonth) != 0 {
-			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-				ID:          "In",
-				Description: "Used before by month count",
-				Other:       "in",
-			}}))
+			localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
+				DefaultMessage: &i18n.Message{
+					ID:          "In",
+					Description: "Used before by month count",
+					Other:       "in",
+				}})
+			t.add(localizedString)
 
 			t.addByMonth()
 		}
@@ -328,7 +349,7 @@ func (t *text) weekly() {
 func (t *text) monthly() {
 	if len(t.rule.Bymonth) != 0 {
 		if t.rule.Interval != 1 {
-			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
 				DefaultMessage: &i18n.Message{
 					ID:          "IntervalCountMonths",
 					Description: "Used for months by month",
@@ -342,7 +363,8 @@ func (t *text) monthly() {
 					"Interval": t.rule.Interval,
 				},
 				PluralCount: t.rule.Interval,
-			}))
+			})
+			t.add(localizedString)
 		}
 
 		t.addByMonth()
@@ -351,7 +373,7 @@ func (t *text) monthly() {
 			t.add(strconv.Itoa(t.rule.Interval))
 		}
 
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
 				ID:          "IntervalMonths",
 				Description: "Used after interval monthly",
@@ -362,17 +384,20 @@ func (t *text) monthly() {
 				Other:       "months",
 			},
 			PluralCount: t.rule.Interval,
-		}))
+		})
+		t.add(localizedString)
 	}
 
 	if len(t.bymonthday) != 0 {
 		t.addByMonthday()
 	} else if t.byweekday != nil && t.byweekday.isWeekdays {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "OnWeekdays",
-			Description: "Used if on every work weekdays on week",
-			Other:       "on weekdays",
-		}}))
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "OnWeekdays",
+				Description: "Used if on every work weekdays on week",
+				Other:       "on weekdays",
+			}})
+		t.add(localizedString)
 	} else if t.byweekday != nil {
 		t.addByWeekday()
 	}
@@ -381,7 +406,7 @@ func (t *text) monthly() {
 func (t *text) yearly() {
 	if len(t.rule.Bymonth) != 0 {
 		if t.rule.Interval != 1 {
-			t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+			localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
 				DefaultMessage: &i18n.Message{
 					ID:          "IntervalYearlyByMonth",
 					Description: "Used for years by month",
@@ -395,7 +420,8 @@ func (t *text) yearly() {
 					"Interval": t.rule.Interval,
 				},
 				PluralCount: t.rule.Interval,
-			}))
+			})
+			t.add(localizedString)
 		}
 
 		t.addByMonth()
@@ -404,7 +430,7 @@ func (t *text) yearly() {
 			t.add(strconv.Itoa(t.rule.Interval))
 		}
 
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
 				ID:          "IntervalYears",
 				Description: "Used after interval yearly",
@@ -415,7 +441,8 @@ func (t *text) yearly() {
 				Other:       "years",
 			},
 			PluralCount: t.rule.Interval,
-		}))
+		})
+		t.add(localizedString)
 	}
 
 	if len(t.bymonthday) != 0 {
@@ -425,23 +452,31 @@ func (t *text) yearly() {
 	}
 
 	if len(t.rule.Byyearday) != 0 {
-		t.add(t.loc.MustLocalize(langOnThe))
-		t.add(t.list(t.rule.Byyearday, IsNTH, t.loc.MustLocalize(langAnd)))
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "ByYearDay",
-			Description: "Used after by year day",
-			Other:       "day",
-		}}))
+		localizedString, _ := t.loc.Localize(langOnThe)
+		t.add(localizedString)
+
+		localizedString, _ = t.loc.Localize(langAnd)
+		t.add(t.list(t.rule.Byyearday, IsNTH, localizedString))
+
+		localizedString, _ = t.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "ByYearDay",
+				Description: "Used after by year day",
+				Other:       "day",
+			}})
+		t.add(localizedString)
 	}
 
 	if len(t.rule.Byweekno) != 0 {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "InWeekNo",
-			Description: "Used before by week no",
-			Other:       "in",
-		}}))
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "InWeekNo",
+				Description: "Used before by week no",
+				Other:       "in",
+			}})
+		t.add(localizedString)
 
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{
+		localizedString, _ = t.loc.Localize(&i18n.LocalizeConfig{
 			DefaultMessage: &i18n.Message{
 				ID:          "CountWeekNo",
 				Description: "Used before WeekNo list",
@@ -452,62 +487,88 @@ func (t *text) yearly() {
 				Other:       "weeks",
 			},
 			PluralCount: len(t.rule.Byweekno),
-		}))
+		})
+		t.add(localizedString)
 
-		t.add(t.list(t.rule.Byweekno, IsINT, t.loc.MustLocalize(langAnd)))
+		localizedString, _ = t.loc.Localize(langOnThe)
+		t.add(t.list(t.rule.Byweekno, IsINT, localizedString))
 	}
 }
 
 func (t *text) addByMonth() {
-	t.add(t.list(t.rule.Bymonth, IsMONTH, t.loc.MustLocalize(langAnd)))
+	localizedString, _ := t.loc.Localize(langAnd)
+	t.add(t.list(t.rule.Bymonth, IsMONTH, localizedString))
 }
 
 func (t *text) addByMonthday() {
 	if t.byweekday != nil && len(t.byweekday.allWeeks) != 0 {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "OnAllWeeks",
-			Description: "Used before all weeks list",
-			Other:       "on",
-		}}))
-		t.add(t.listWeekday(t.byweekday.allWeeks, t.loc.MustLocalize(langOr)))
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "TheAllWeeks",
-			Description: "Used between all weeks list and bymonthday",
-			Other:       "the",
-		}}))
-		t.add(t.list(t.bymonthday, IsNTH, t.loc.MustLocalize(langOr)))
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "OnAllWeeks",
+				Description: "Used before all weeks list",
+				Other:       "on",
+			}})
+		t.add(localizedString)
+
+		localizedString, _ = t.loc.Localize(langOr)
+		t.add(t.listWeekday(t.byweekday.allWeeks, localizedString))
+
+		localizedString, _ = t.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "TheAllWeeks",
+				Description: "Used between all weeks list and bymonthday",
+				Other:       "the",
+			}})
+		t.add(localizedString)
+
+		localizedString, _ = t.loc.Localize(langOr)
+		t.add(t.list(t.bymonthday, IsNTH, localizedString))
 	} else {
-		t.add(t.loc.MustLocalize(langOnThe))
-		t.add(t.list(t.bymonthday, IsNTH, t.loc.MustLocalize(langAnd)))
+		localizedString, _ := t.loc.Localize(langOnThe)
+		t.add(localizedString)
+
+		localizedString, _ = t.loc.Localize(langAnd)
+		t.add(t.list(t.bymonthday, IsNTH, localizedString))
 	}
 }
 
 func (t *text) addByWeekday() {
 	if t.byweekday != nil && len(t.byweekday.allWeeks) != 0 && !t.byweekday.isWeekdays {
-		t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-			ID:          "OnWeekday",
-			Description: "Used before by weekday list",
-			Other:       "on",
-		}}))
+		localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
+			DefaultMessage: &i18n.Message{
+				ID:          "OnWeekday",
+				Description: "Used before by weekday list",
+				Other:       "on",
+			}})
+		t.add(localizedString)
+
 		t.add(t.listWeekday(t.byweekday.allWeeks, ""))
 	}
 	if t.byweekday != nil && len(t.byweekday.someWeeks) != 0 {
 		if len(t.byweekday.allWeeks) != 0 {
-			t.add(t.loc.MustLocalize(langAnd))
+			localizedString, _ := t.loc.Localize(langAnd)
+			t.add(localizedString)
 		}
 
-		t.add(t.loc.MustLocalize(langOnThe))
-		t.add(t.listWeekday(t.byweekday.someWeeks, t.loc.MustLocalize(langAnd)))
+		localizedString, _ := t.loc.Localize(langOnThe)
+		t.add(localizedString)
+
+		localizedString, _ = t.loc.Localize(langAnd)
+		t.add(t.listWeekday(t.byweekday.someWeeks, localizedString))
 	}
 }
 
 func (t *text) addByHour() {
-	t.add(t.loc.MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{
-		ID:          "At",
-		Description: "Used before hour list",
-		Other:       "at",
-	}}))
-	t.add(t.list(t.rule.Byhour, IsINT, t.loc.MustLocalize(langAnd)))
+	localizedString, _ := t.loc.Localize(&i18n.LocalizeConfig{
+		DefaultMessage: &i18n.Message{
+			ID:          "At",
+			Description: "Used before hour list",
+			Other:       "at",
+		}})
+	t.add(localizedString)
+
+	localizedString, _ = t.loc.Localize(langAnd)
+	t.add(t.list(t.rule.Byhour, IsINT, localizedString))
 }
 
 func (t *text) isFullyConvertible() bool {
